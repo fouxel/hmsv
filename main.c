@@ -186,7 +186,7 @@ void send_string(const char* s)
 int main(void)
 {
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE); //włączenie zegara
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 | RCC_APB1Periph_TIM4, ENABLE); //włączenie zegara
 
 	TIM_TimeBaseInitTypeDef TIM_InitStruct; //struktura inicjalizacyjna
 
@@ -234,9 +234,45 @@ int main(void)
 
 	USART_Cmd(USART2, ENABLE);
 
+	//silnik
+
+	  TIM_TimeBaseInitTypeDef tim;
+	  NVIC_InitTypeDef nvic;
+    gpio.GPIO_Pin = GPIO_Pin_6;
+    gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    gpio.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(GPIOB, &gpio);
+    TIM_TimeBaseStructInit(&tim);
+    tim.TIM_CounterMode = TIM_CounterMode_Up;
+    tim.TIM_Prescaler = 64 - 1;
+    tim.TIM_Period = 20000;
+    TIM_TimeBaseInit(TIM4, &tim);
+
+    TIM_OCInitTypeDef channel;
+
+    TIM_OCStructInit(&channel);
+    channel.TIM_OCMode = TIM_OCMode_PWM1;
+    channel.TIM_OutputState = TIM_OutputState_Enable;
+    channel.TIM_Pulse = 1200;
+    TIM_OC1Init(TIM4, &channel);
+    channel.TIM_Pulse = 1100;
+    TIM_OC2Init(TIM4, &channel);
+
+ //   TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+  // TIM_Cmd(TIM2, ENABLE);
+
+  //  nvic.NVIC_IRQChannel = TIM2_IRQn;
+ //   nvic.NVIC_IRQChannelPreemptionPriority = 0;
+ //   nvic.NVIC_IRQChannelSubPriority = 0;
+ //   nvic.NVIC_IRQChannelCmd = ENABLE;
+ //   NVIC_Init(&nvic);
+    TIM_Cmd(TIM4, ENABLE);
+
+
+
     while (1) {
     	float t = ReadTemp();
-    	if (t < 63) {
+    	if (t < 64) {
     		GPIO_SetBits(GPIOC, 1);
     	} else {
     		GPIO_ResetBits(GPIOC, 1);
